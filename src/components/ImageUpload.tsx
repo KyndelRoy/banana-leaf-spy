@@ -1,5 +1,5 @@
 import { Upload, Image as ImageIcon } from "lucide-react";
-import { useState, useRef, DragEvent } from "react";
+import { useState, useRef, DragEvent, useEffect } from "react";
 
 interface ImageUploadProps {
   onImageSelect: (file: File) => void;
@@ -40,6 +40,28 @@ const ImageUpload = ({ onImageSelect, selectedImage }: ImageUploadProps) => {
   const handleClick = () => {
     fileInputRef.current?.click();
   };
+
+  const handlePaste = (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile();
+        if (file) {
+          onImageSelect(file);
+          break;
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("paste", handlePaste);
+    return () => {
+      document.removeEventListener("paste", handlePaste);
+    };
+  }, []);
 
   return (
     <div className="w-full">
@@ -86,7 +108,7 @@ const ImageUpload = ({ onImageSelect, selectedImage }: ImageUploadProps) => {
                 Upload Banana Leaf Image
               </h3>
               <p className="text-muted-foreground">
-                Drag and drop an image here, or click to select
+                Drag and drop an image here, click to select, or paste from clipboard
               </p>
               <p className="text-sm text-muted-foreground mt-2">
                 Supports: JPG, PNG, WEBP
